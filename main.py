@@ -7,6 +7,7 @@ altoPantalla = 650
 velocidad = 10
 gravedad = 1
 velocidad_Juego = 10
+espacioTubo = 150
 
 ancho_piso = 2 * anchoPantalla
 altura_piso = 100
@@ -38,6 +39,7 @@ class Mario(pygame.sprite.Sprite):
         self.current_image = (self.current_image + 1) % 3
         self.image = self.images[ self.current_image ]
 
+
         self.speed += gravedad
 
         # Actualizar altura
@@ -47,7 +49,20 @@ class Mario(pygame.sprite.Sprite):
     def bump(self):
         self.speed = -velocidad
 
+#Clase para crear el tubo
+class Tubo(pygame.sprite.Sprite):
 
+    def __init__(self, x, y, posicion) -> None:
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("assets/tuboinferior.png")
+        self.rect = self.image.get_rect()
+        #Posición 1 es para el tubo superior, y el -1 para tubo inferior
+        if posicion == 1:
+            self.image = pygame.transform.flip(self.image, False, True)
+            self.rect.bottomleft = [x, y - (espacioTubo / 2)]
+        if posicion == -1:
+            self.rect.topleft = [x, y + (espacioTubo / 2)]
+    
 
 #Clase para crear el piso
 class Piso(pygame.sprite.Sprite):
@@ -72,7 +87,7 @@ def is_off_screen(sprite):
 
 pygame.init()
 pantalla = pygame.display.set_mode((anchoPantalla, altoPantalla))
-
+pygame.display.set_caption("Flappy Mario")
 
 fondo = pygame.image.load("assets/fondo.png")
 fondo = pygame.transform.scale(fondo, (anchoPantalla, altoPantalla))
@@ -82,6 +97,11 @@ grupo_mario = pygame.sprite.Group()
 mario = Mario()
 grupo_mario.add(mario)
 
+grupo_tubo = pygame.sprite.Group()
+tubo_inferior = Tubo(300, (altoPantalla/2), -1)
+tubo_superior = Tubo(300, (altoPantalla/2), 1)
+grupo_tubo.add(tubo_inferior)
+grupo_tubo.add(tubo_superior)
 
 grupo_piso = pygame.sprite.Group()
 for i in range(2):
@@ -110,10 +130,11 @@ while True:
         nuevo_piso = Piso(ancho_piso - 10)
         grupo_piso.add(nuevo_piso)
 
-
+    grupo_tubo.update()
     grupo_mario.update()
     grupo_piso.update()
 
+    grupo_tubo.draw(pantalla)
     grupo_mario.draw(pantalla)
     grupo_piso.draw(pantalla)
 
