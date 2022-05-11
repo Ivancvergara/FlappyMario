@@ -11,14 +11,18 @@ Videojuego creado con Pygame, como parte del Proyecto Final para el Bootcamp de 
 * Posteriormente, para poder seguir vivo dentro del juego hay que seguir presionando Barra Espaciadora para que Mario salte.
 * El juego termina una vez que Mario choca en un tubo o cae al suelo. El juego presentará una leyenda si se superó el mejor puntaje (o no), así como el puntaje obtenido y el mejor puntaje (no) superado.
 
-# Instalar
-Puedes jugar FlappyMario clonando este repositorio.
+## Instalar
+Puedes jugar FlappyMario clonando este repositorio:
 
-`$ git clone url`
+`git clone https://github.com/Ivancvergara/FlappyMario.git`
 
-Posteriormente, deberás ejecutar el juego con el siguiente comando
-`$ python main.py`
+Posteriormente, deberás dirigirte a la carpeta del juego con el siguiente comando:
 
+`cd FlappyMario`
+
+Finalmente, para ejecutar el juego, deberás ejecutar este comando:
+
+`python main.py`
 
 ## Tecnologías 
 Una lista de tecnologías usadas en este proyecto:
