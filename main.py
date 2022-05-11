@@ -10,22 +10,24 @@ pygame.init()
 clock = pygame.time.Clock()
 fps = 30
 
-anchoPantalla = 500
-altoPantalla = 650
+ancho_pantalla = 500
+alto_pantalla = 650
 
-pantalla = pygame.display.set_mode((anchoPantalla, altoPantalla))
+pantalla = pygame.display.set_mode((ancho_pantalla, alto_pantalla))
 pygame.display.set_caption("Flappy Mario")
 
 #Cargando música y sonidos
 
-musicaFondo = pygame.mixer.Sound("assets/principal.mp3")
-sonidoSalto = pygame.mixer.Sound("assets/salto.wav")
-sonidoMuerte = pygame.mixer.Sound("assets/muerto.wav")
+pygame.mixer.music.load("assets/principal.wvb")
+pygame.mixer.music.play()
+pygame.mixer.music.set_volume(0.2)
 
+sonido_salto = pygame.mixer.Sound("assets/salto.wav")
+sonido_muerte = pygame.mixer.Sound("assets/muerto.wav")
 
 #Definiendo fuente
-fuenteGameOver = pygame.font.SysFont('Bauhaus 93', 25)
-fuentePuntaje = pygame.font.SysFont('Bauhaus 93', 60)
+fuente_GO = pygame.font.SysFont('Bauhaus 93', 25)
+fuente_puntaje = pygame.font.SysFont('Bauhaus 93', 60)
 
 #Definiendo color
 blanco = (255, 255, 255)
@@ -33,17 +35,17 @@ blanco = (255, 255, 255)
 #Definiendo variables del juego
 velocidad = 8
 gravedad = 1
-desplazamientoPiso = 0
-velocidadJuego = 6
-gameOver = False
+desplazamiento_piso = 0
+velocidad_juego = 6
+game_over = False
 vuelo = False
-espacioTubo = 150
-frecuenciaTubo = 1500 #Milisegundos
-ultimoTubo = pygame.time.get_ticks() - frecuenciaTubo
-ancho_piso = 2 * anchoPantalla
+espacio_tubo = 150
+frecuencia_tubo = 1500 #Milisegundos
+ultimo_tubo = pygame.time.get_ticks() - frecuencia_tubo
+ancho_piso = 2 * ancho_pantalla
 altura_piso = 100
 puntaje = 0
-pasarTuberia = False
+pasar_tuberia = False
 
 #Manejo de Archivo Mejor Puntaje
 current_path = Path.cwd()
@@ -51,21 +53,21 @@ file_Path = current_path / "mejorPuntaje.txt"
 
 #Cargando imágenes
 fondo = pygame.image.load("assets/fondo.png")
-fondo = pygame.transform.scale(fondo, (anchoPantalla, altoPantalla))
+fondo = pygame.transform.scale(fondo, (ancho_pantalla, alto_pantalla))
 piso = pygame.image.load("assets/piso1.png")
-img_GameOver = pygame.image.load("assets/gameover.png")
+img_game_over = pygame.image.load("assets/gameOver.png")
 
 
-def textoFelicitacion(texto, fuenteGameOver, colorTexto, x, y):
-    img = fuenteGameOver.render(texto, True, colorTexto)
+def textoFelicitacion(texto, fuente_GO, colorTexto, x, y):
+    img = fuente_GO.render(texto, True, colorTexto)
     pantalla.blit(img, (x, y))
 
-def textoMejorPuntaje(texto, fuenteGameOver, colorTexto, x, y):
-    img = fuenteGameOver.render(texto, True, colorTexto)
+def textoMejorPuntaje(texto, fuente_GO, colorTexto, x, y):
+    img = fuente_GO.render(texto, True, colorTexto)
     pantalla.blit(img, (x, y))
 
-def textoPuntaje(texto, fuentePuntaje, colorTexto, x, y):
-    img = fuentePuntaje.render(texto, True, colorTexto)
+def textoPuntaje(texto, fuente_puntaje, colorTexto, x, y):
+    img = fuente_puntaje.render(texto, True, colorTexto)
     pantalla.blit(img, (x, y))
 
 def escrituraPuntaje():
@@ -81,12 +83,9 @@ class lecturaPuntaje:
 def reset_game():
     grupo_tubo.empty()
     mario.rect.x = 100
-    mario.rect.y = int(altoPantalla / 2)
+    mario.rect.y = int(alto_pantalla / 2)
     puntaje = 0
     return puntaje
-
-musicaFondo.set_volume(0.2)
-musicaFondo.play()
 
 #Clase para crear a Mario
 class Mario(pygame.sprite.Sprite):
@@ -113,12 +112,11 @@ class Mario(pygame.sprite.Sprite):
     def update(self):
         self.speed += gravedad
 
-
         # Actualizar altura
         if vuelo == True:
             self.rect[1] += self.speed
 
-        if gameOver == False:
+        if game_over == False:
 
             #Manejo de la animación
             self.counter += 1
@@ -134,6 +132,8 @@ class Mario(pygame.sprite.Sprite):
     #Función para controlar la velocidad del cambio entre un sprite y otro
     def jump(self):
         self.speed = -velocidad
+        sonido_salto.play()
+        sonido_salto.set_volume(0.6)
         
 
 #Clase para crear el tubo
@@ -146,17 +146,17 @@ class Tubo(pygame.sprite.Sprite):
         #Posición 1 es para el tubo superior, y el -1 para tubo inferior
         if posicion == 1:
             self.image = pygame.transform.flip(self.image, False, True)
-            self.rect.bottomleft = [x, y - int(espacioTubo / 2)]
+            self.rect.bottomleft = [x, y - int(espacio_tubo / 2)]
         if posicion == -1:
-            self.rect.topleft = [x, y + int(espacioTubo / 2)]
+            self.rect.topleft = [x, y + int(espacio_tubo / 2)]
     
     #Movimiento de la tubería
     def update(self):
-        self.rect.x -= velocidadJuego
+        self.rect.x -= velocidad_juego
         if self.rect.right < 0:
             self.kill()
 
-class juegoTerminado():
+class juego_terminado():
     def __init__(self, x, y, image):
         self.image = image
         self.rect = self.image.get_rect()
@@ -177,17 +177,16 @@ class juegoTerminado():
         pantalla.blit(self.image, (self.rect.x, self.rect.y))
         return action
 
-
 grupo_mario = pygame.sprite.Group()
 grupo_tubo = pygame.sprite.Group()
 
-mario = Mario(100, int(altoPantalla / 2))
+mario = Mario(100, int(alto_pantalla / 2))
 
 grupo_mario.add(mario)
 
-posicionPiso = posicionPiso = altoPantalla - piso.get_height()
+posicion_piso = alto_pantalla - piso.get_height()
 
-juegoTerminado = juegoTerminado((anchoPantalla/2) - 96, (altoPantalla/2) - 30, img_GameOver)
+juego_terminado = juego_terminado((ancho_pantalla/2) - 96, (alto_pantalla/2) - 30, img_game_over)
 
 run = True
 while run:
@@ -201,75 +200,80 @@ while run:
     grupo_tubo.draw(pantalla)
 
     #Dibujar piso
-    pantalla.blit(piso, (desplazamientoPiso, posicionPiso))
+    pantalla.blit(piso, (desplazamiento_piso, posicion_piso))
 
     #Puntaje
     if len(grupo_tubo) > 0:
         if grupo_mario.sprites()[0].rect.left > grupo_tubo.sprites()[0].rect.left\
             and grupo_mario.sprites()[0].rect.right < grupo_tubo.sprites()[0].rect.right\
-            and pasarTuberia == False:
-            pasarTuberia = True
-        if pasarTuberia == True:
+            and pasar_tuberia == False:
+            pasar_tuberia = True
+        if pasar_tuberia == True:
             if grupo_mario.sprites()[0].rect.left > grupo_tubo.sprites()[0].rect.right:
                 puntaje += 1
-                pasarTuberia = False
+                pasar_tuberia = False
 
-    textoPuntaje(str(puntaje), fuentePuntaje, blanco, int(anchoPantalla / 2), 20)
+    textoPuntaje(str(puntaje), fuente_puntaje, blanco, int(ancho_pantalla / 2), 20)
     
     #Busca de colisión
     if pygame.sprite.groupcollide(grupo_mario, grupo_tubo, False, False) or mario.rect.top < 0:
-        gameOver = True
+        game_over = True
         
     #Chequeo si Mario tiene un tope en el suelo
-    if mario.rect.bottom > posicionPiso:
-        gameOver = True
+    if mario.rect.bottom > posicion_piso:
+        game_over = True
         vuelo = False
 
-    if gameOver == False and vuelo == True:
+    if game_over == False and vuelo == True:
 
         #Generación de nuevas tuberías
         ahora = pygame.time.get_ticks()
-        if ahora - ultimoTubo > frecuenciaTubo:
+        if ahora - ultimo_tubo > frecuencia_tubo:
             alturaTubo = random.randint(-100, 100)
-            tubo_inferior = Tubo(anchoPantalla, (altoPantalla/2) + alturaTubo, -1)
-            tubo_superior = Tubo(anchoPantalla, (altoPantalla/2) + alturaTubo, 1)
+            tubo_inferior = Tubo(ancho_pantalla, (alto_pantalla/2) + alturaTubo, -1)
+            tubo_superior = Tubo(ancho_pantalla, (alto_pantalla/2) + alturaTubo, 1)
             grupo_tubo.add(tubo_inferior)
             grupo_tubo.add(tubo_superior)
-            ultimoTubo = ahora
+            ultimo_tubo = ahora
 
         #Dibuja y desplaza el piso
-        desplazamientoPiso -= velocidadJuego
-        if abs(desplazamientoPiso) > 35:
-            desplazamientoPiso = 0
+        desplazamiento_piso -= velocidad_juego
+        if abs(desplazamiento_piso) > 35:
+            desplazamiento_piso = 0
         
         grupo_tubo.update()
 
-    #Checar GameOver y reiniciar
-    if gameOver == True:
+    #Checar game_over y reiniciar
+    if game_over == True:
+
+        pygame.mixer.music.stop()
+        sonido_salto.stop()
+        #sonido_muerte.play()
+
         if puntaje > int(lecturaPuntaje.content):
             escrituraPuntaje()
-            textoFelicitacion("¡Felicidades has superado el Mejor Puntaje!", fuenteGameOver, blanco, 5, int((altoPantalla / 5) * 3))
-            textoMejorPuntaje("El Mejor Puntaje era de: " + lecturaPuntaje.content, fuenteGameOver, blanco, int((anchoPantalla / 2) - 120), int((altoPantalla / 5) * 3.5))
-            textoPuntaje("Tu Puntaje fue de: " + str(puntaje), fuenteGameOver, blanco, int((anchoPantalla / 2) - 100), int((altoPantalla / 5) * 4))
+            textoFelicitacion("¡Felicidades has superado el Mejor Puntaje!", fuente_GO, blanco, 5, int((alto_pantalla / 5) * 3))
+            textoMejorPuntaje("El Mejor Puntaje era de: " + lecturaPuntaje.content, fuente_GO, blanco, int((ancho_pantalla / 2) - 120), int((alto_pantalla / 5) * 3.5))
+            textoPuntaje("Tu Puntaje fue de: " + str(puntaje), fuente_GO, blanco, int((ancho_pantalla / 2) - 100), int((alto_pantalla / 5) * 4))
         else:
-            textoFelicitacion("No has superado el Mejor Puntaje :(", fuenteGameOver, blanco, int(anchoPantalla / 8), int((altoPantalla / 5) * 3))
-            textoMejorPuntaje("El Mejor Puntaje es: " + lecturaPuntaje.content, fuenteGameOver, blanco, int((anchoPantalla / 2) - 100), int((altoPantalla / 5) * 3.5))
-            textoPuntaje("Tu Puntaje fue de: " + str(puntaje), fuenteGameOver, blanco, int((anchoPantalla / 2) - 100), int((altoPantalla / 5) * 4))
-        if juegoTerminado.draw() == True:
-            gameOver = False
+            textoFelicitacion("No has superado el Mejor Puntaje :(", fuente_GO, blanco, int(ancho_pantalla / 8), int((alto_pantalla / 5) * 3))
+            textoMejorPuntaje("El Mejor Puntaje es: " + lecturaPuntaje.content, fuente_GO, blanco, int((ancho_pantalla / 2) - 100), int((alto_pantalla / 5) * 3.5))
+            textoPuntaje("Tu Puntaje fue de: " + str(puntaje), fuente_GO, blanco, int((ancho_pantalla / 2) - 100), int((alto_pantalla / 5) * 4))
+        
+        if juego_terminado.draw() == True:
+            game_over = False
             puntaje = reset_game()
-            
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        if event.type == KEYDOWN and vuelo == False and gameOver == False:
+        if event.type == KEYDOWN and vuelo == False and game_over == False:
             if event.key == K_SPACE:
                 vuelo = True         
                
         mario.jump()
-        sonidoSalto.play()
-        sonidoSalto.set_volume(0.1)         
+        #sonido_salto.play()
+        #sonido_salto.set_volume(0.2)       
 
     pygame.display.update()
 
