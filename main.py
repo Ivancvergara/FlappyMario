@@ -1,3 +1,4 @@
+from winsound import PlaySound
 import pygame
 from pathlib import Path
 from pygame.locals import *
@@ -20,7 +21,6 @@ pygame.display.set_caption("Flappy Mario")
 
 pygame.mixer.music.load("assets/principal.wvb")
 pygame.mixer.music.play()
-pygame.mixer.music.set_volume(0.2)
 
 sonido_salto = pygame.mixer.Sound("assets/salto.wav")
 sonido_muerte = pygame.mixer.Sound("assets/muerto.wav")
@@ -46,6 +46,7 @@ ancho_piso = 2 * ancho_pantalla
 altura_piso = 100
 puntaje = 0
 pasar_tuberia = False
+PlaySound = True
 
 #Manejo de Archivo Mejor Puntaje
 current_path = Path.cwd()
@@ -75,10 +76,11 @@ def escrituraPuntaje():
     with open(file_Path, "w") as file:
         file.write(str(puntaje))
 
-class lecturaPuntaje:
+def lecturaPuntaje():
     #Manejo de Archivo (Sólo Lectura)
     with open(file_Path) as file:
         content = file.read()
+        return content
 
 def reset_game():
     grupo_tubo.empty()
@@ -104,10 +106,8 @@ class Mario(pygame.sprite.Sprite):
         self.rect.center = [x, y]
         self.vel = 0
         self.clicked = False
-
         self.speed = velocidad
 
-        
     #Función para controlar el movimiento de Mario
     def update(self):
         self.speed += gravedad
@@ -131,10 +131,15 @@ class Mario(pygame.sprite.Sprite):
 
     #Función para controlar la velocidad del cambio entre un sprite y otro
     def jump(self):
-        self.speed = -velocidad
+        self.speed = -velocidad    
+    
+    def sonido_salto(self):
         sonido_salto.play()
         sonido_salto.set_volume(0.6)
-        
+    
+    def sonido_muerte(self):
+        sonido_muerte.play(0)
+        sonido_muerte.set_volume(0.2)       
 
 #Clase para crear el tubo
 class Tubo(pygame.sprite.Sprite):
@@ -164,15 +169,6 @@ class juego_terminado():
 
     def draw(self):
         action = False
-
-        #get mouse position
-        pos = pygame.mouse.get_pos()
-
-        #check if mouse is over the button
-        if self.rect.collidepoint(pos):
-            if pygame.mouse.get_pressed()[0] == 1:
-                action = True
-
         #draw button
         pantalla.blit(self.image, (self.rect.x, self.rect.y))
         return action
@@ -190,6 +186,7 @@ juego_terminado = juego_terminado((ancho_pantalla/2) - 96, (alto_pantalla/2) - 3
 
 run = True
 while run:
+    
     clock.tick(fps)
 
     #Dibujar fondo
@@ -215,10 +212,11 @@ while run:
 
     textoPuntaje(str(puntaje), fuente_puntaje, blanco, int(ancho_pantalla / 2), 20)
     
-    #Busca de colisión
+    #Busca de colisión con Tubos
     if pygame.sprite.groupcollide(grupo_mario, grupo_tubo, False, False) or mario.rect.top < 0:
         game_over = True
-        
+        vuelo = False
+
     #Chequeo si Mario tiene un tope en el suelo
     if mario.rect.bottom > posicion_piso:
         game_over = True
@@ -245,36 +243,42 @@ while run:
 
     #Checar game_over y reiniciar
     if game_over == True:
-
-        pygame.mixer.music.stop()
-        sonido_salto.stop()
-        #sonido_muerte.play()
-
-        if puntaje > int(lecturaPuntaje.content):
-            escrituraPuntaje()
+        if(PlaySound):
+            pygame.mixer.Sound.play(sonido_muerte)
+            PlaySound = False
+            pygame.mixer.music.stop()
+        ultimo_puntaje = int(lecturaPuntaje())
+        if puntaje >= ultimo_puntaje:
             textoFelicitacion("¡Felicidades has superado el Mejor Puntaje!", fuente_GO, blanco, 5, int((alto_pantalla / 5) * 3))
-            textoMejorPuntaje("El Mejor Puntaje era de: " + lecturaPuntaje.content, fuente_GO, blanco, int((ancho_pantalla / 2) - 120), int((alto_pantalla / 5) * 3.5))
+            textoMejorPuntaje("El Mejor Puntaje era de: " + str(ultimo_puntaje), fuente_GO, blanco, int((ancho_pantalla / 2) - 120), int((alto_pantalla / 5) * 3.5))
             textoPuntaje("Tu Puntaje fue de: " + str(puntaje), fuente_GO, blanco, int((ancho_pantalla / 2) - 100), int((alto_pantalla / 5) * 4))
         else:
             textoFelicitacion("No has superado el Mejor Puntaje :(", fuente_GO, blanco, int(ancho_pantalla / 8), int((alto_pantalla / 5) * 3))
-            textoMejorPuntaje("El Mejor Puntaje es: " + lecturaPuntaje.content, fuente_GO, blanco, int((ancho_pantalla / 2) - 100), int((alto_pantalla / 5) * 3.5))
+            textoMejorPuntaje("El Mejor Puntaje es: " + str(ultimo_puntaje), fuente_GO, blanco, int((ancho_pantalla / 2) - 100), int((alto_pantalla / 5) * 3.5))
             textoPuntaje("Tu Puntaje fue de: " + str(puntaje), fuente_GO, blanco, int((ancho_pantalla / 2) - 100), int((alto_pantalla / 5) * 4))
         
-        if juego_terminado.draw() == True:
-            game_over = False
-            puntaje = reset_game()
+        juego_terminado.draw()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            if puntaje >= ultimo_puntaje:
+                escrituraPuntaje()
             run = False
         if event.type == KEYDOWN and vuelo == False and game_over == False:
             if event.key == K_SPACE:
-                vuelo = True         
-               
+                vuelo = True
+        if event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                if puntaje >= ultimo_puntaje:
+                    escrituraPuntaje()
+                reset_game()
+                puntaje = reset_game()
+                game_over = False
+                PlaySound = True
+                sonido_muerte.stop()
+                pygame.mixer.music.play()
         mario.jump()
-        #sonido_salto.play()
-        #sonido_salto.set_volume(0.2)       
-
+        if vuelo == True:
+            mario.sonido_salto()                
     pygame.display.update()
-
 pygame.quit()
