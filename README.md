@@ -7,9 +7,10 @@ Videojuego creado con Pygame, como parte del Proyecto Final para el Bootcamp de 
 ![Image text](/assets/demo.gif)
 
 ## ¿Cómo jugar?
-* Al inicializar el juego, no empezará de inmediato, está programado para iniciar una vez aprentando la tecla de Barra Espaciadora.
-* Posteriormente, para poder seguir vivo dentro del juego hay que seguir presionando Barra Espaciadora para que Mario salte.
+* Al inicializar el juego, no empezará de inmediato, está programado para iniciar una vez presionando la tecla de `Barra Espaciadora`.
+* Posteriormente, para poder seguir vivo dentro del juego hay que seguir presionando `Barra Espaciadora` para que Mario salte.
 * El juego termina una vez que Mario choca en un tubo o cae al suelo. El juego presentará una leyenda si se superó el mejor puntaje (o no), así como el puntaje obtenido y el mejor puntaje (no) superado.
+* Si se quiere iniciar una nueva partida, hay que presionar la tecla `Enter`
 
 ## Instalar
 Puedes jugar FlappyMario clonando este repositorio:
